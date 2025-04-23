@@ -2,38 +2,61 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: 2025 The Linux Foundation
 
-# actions-template
-name: "🛠️ Actions Template"
-description: "Description of action"
-# Any relevant notes/observations can go here
+# tag-validate-calver-action
+name: '🏷️ Check Calendar Versioning String/Tag'
+description: 'Validates a given string for conformity to Calendar Versioning'
 
 inputs:
-  INPUT:
-    description: "Description of input"
+  # Mandatory
+  string:
+    description: 'Tag/version string to check/verify'
+    type: 'string'
+    required: true
+  exit_on_fail:
+    description: 'Exits with error status if CalVer check fails'
+    type: 'boolean'
     required: false
-    type: string
-    default: "input"
+    default: false
 
 outputs:
-  OUTPUT:
-    description: "Description of output"
-    value: ${{ steps.code.outputs.output }}
+  # Mandatory
+  valid:
+    description: 'Set true if tag passes semantic versioning check'
+    value: ${{ steps.validate.outputs.valid }}
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
-    - name: "Friendly Name"
-      id: code
+    - name: 'Validate string/tag: CalVer'
+      id: validate
       shell: bash
+      # yamllint disable rule:line-length
       run: |
-        # Friendly Name
-        INPUT="${{ inputs.input }}"
-        if [ -z "$INPUT" ]; then
-          echo "Error: mandatory input INPUT was not set/configured ❌"
-          exit 1
+        # Validate string/tag: CalVer
+        string="${{ inputs.string }}"
+        exit_on_fail="${{ inputs.exit_on_fail }}"
+
+        echo "String to check: $string"
+        # Strip leading "v" character if present
+        if [[ "$string" == v* ]] || [[ "$string" == V* ]]; then
+          string="${string:1}"
         fi
 
-        echo "output=$INPUT" >> "$GITHUB_ENV"
-        echo "output=$INPUT" >> "$GITHUB_OUTPUT"
-        echo "Action received a valid input: $INPUT ✅"
-        echo "Action received a valid input: $INPUT ✅" >> "$GITHUB_STEP_SUMMARY"
+        # See: https://regex101.com/r/BQfFYn/1
+        # Best effort at a reasonable RegEx that accepts a number of variations
+        pattern="^(\d{2}|\d{4}).(\d{1}|\d{2})(\.(\d{1}|\d{2})?((\.|\-|\_))[a-zA-Z0-9].*)$"
+
+        # Use grep with PCRE regular expression support
+        checked=$(echo $string | grep -P "$pattern" || true)
+        if [ "$checked" = "$string" ]; then
+          echo "Tag/version string is valid CalVer ✅"
+          echo "valid=true" >> $GITHUB_ENV
+          echo "valid=true" >> $GITHUB_OUTPUT
+        else
+          echo "Tag/version string is NOT valid CalVer ❌"
+          echo "valid=false" >> $GITHUB_ENV
+          echo "valid=false" >> $GITHUB_OUTPUT
+          if [ "f$exit_on_fail" = "ftrue" ]; then
+            exit 1
+          fi
+        fi
