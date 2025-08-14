@@ -38,8 +38,17 @@ jobs:
 
       - name: "Running local action: ${{ github.repository }} v2025.02.3-dev1"
         uses: ./
+        id: dev-tag
         with:
           string: "v2025.02.3-dev1"
+
+      - name: "Error if development tag not flagged"
+        if: steps.dev-tag.outputs.dev_version != 'true'
+        shell: bash
+        run: |
+          # Error if development tag not flagged
+          echo "Error: development tag was not flagged ❌"
+          exit 1
 
       # yamllint disable-line rule:line-length
       - name: "Running local action: ${{ github.repository }} v1.not-valid.3.garbage [NOT CalVer]"

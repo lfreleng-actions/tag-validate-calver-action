@@ -23,6 +23,9 @@ outputs:
   valid:
     description: 'Set true if tag passes semantic versioning check'
     value: ${{ steps.validate.outputs.valid }}
+  dev_version:
+    description: 'Set true if tag is a development version'
+    value: ${{ steps.validate.outputs.dev_version }}
 
 runs:
   using: 'composite'
@@ -41,6 +44,15 @@ runs:
         if [[ "$string" == v* ]] || [[ "$string" == V* ]]; then
           string="${string:1}"
         fi
+
+        # Detect common development/pre-release identifiers and set output
+        dev_version=false
+        if echo "$string" | grep -Eqi '(dev|pre|alpha|beta|rc|snapshot|nightly|canary|preview)'; then
+          dev_version=true
+        fi
+        echo "Development/pre-release detected: $dev_version"
+        echo "dev_version=$dev_version" >> $GITHUB_ENV
+        echo "dev_version=$dev_version" >> $GITHUB_OUTPUT
 
         # See: https://regex101.com/r/BQfFYn/1
         # Best effort at a reasonable RegEx that accepts a number of variations

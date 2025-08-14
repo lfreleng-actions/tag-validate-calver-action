@@ -39,9 +39,10 @@ steps:
 
 <!-- markdownlint-disable MD013 -->
 
-| Name        | Description                                              |
-| ----------- | -------------------------------------------------------- |
-| valid       | Set true/false if string conforms to calendar versioning |
+| Name        | Description                                                |
+| ----------- | ---------------------------------------------------------- |
+| valid       | Set true when tag/string conforms to Calendar Versioning   |
+| dev_version | Set true when tag contains pre-release/development strings |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -53,6 +54,15 @@ calendar versioning implementations should pass.
 
 For further details: <https://regex101.com/r/BQfFYn/1>
 
-The RegEx used is:
+The RegEx used for calendar versioning compliance is:
 
 `pattern="^(\d{2}|\d{4}).(\d{1}|\d{2})(\.(\d{1}|\d{2})?((\.|\-|\_)?)[a-zA-Z0-9].*)$"`
+
+The RegEx used for development compliance is:
+
+`pattern="(dev|pre|alpha|beta|rc|snapshot|nightly|canary|preview)"`
+
+For further details: <https://regex101.com/r/d6KWNO/1>
+
+The second RegEx uses the grep flags `"-Eqi"` which makes the match
+case-insensitive and allows for partial matches.
