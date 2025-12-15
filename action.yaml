@@ -10,11 +10,9 @@ inputs:
   # Mandatory
   string:
     description: 'Tag/version string to check/verify'
-    type: 'string'
     required: true
   exit_on_fail:
     description: 'Exits with error status if CalVer check fails'
-    type: 'boolean'
     required: false
     default: false
 
