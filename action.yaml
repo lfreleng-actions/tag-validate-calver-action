@@ -14,7 +14,7 @@ inputs:
   exit_on_fail:
     description: 'Exits with error status if CalVer check fails'
     required: false
-    default: false
+    default: 'false'
 
 outputs:
   # Mandatory
