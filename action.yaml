@@ -31,11 +31,14 @@ runs:
     - name: 'Validate string/tag: CalVer'
       id: validate
       shell: bash
+      env:
+        INPUT_STRING: ${{ inputs.string }}
+        INPUT_EXIT_ON_FAIL: ${{ inputs.exit_on_fail }}
       # yamllint disable rule:line-length
       run: |
-        # Validate string/tag: CalVer
-        string="${{ inputs.string }}"
-        exit_on_fail="${{ inputs.exit_on_fail }}"
+        # Validate string/tag: CalVer
+        string="$INPUT_STRING"
+        exit_on_fail="$INPUT_EXIT_ON_FAIL"
 
         echo "String to check: $string"
         # Strip leading "v" character if present
@@ -49,23 +52,22 @@ runs:
           dev_version=true
         fi
         echo "Development/pre-release detected: $dev_version"
-        echo "dev_version=$dev_version" >> $GITHUB_ENV
-        echo "dev_version=$dev_version" >> $GITHUB_OUTPUT
+        echo "dev_version=$dev_version" >> "$GITHUB_OUTPUT"
 
         # See: https://regex101.com/r/BQfFYn/1
         # Best effort at a reasonable RegEx that accepts a number of variations
         pattern="^(\d{2}|\d{4}).(\d{1}|\d{2})(\.(\d{1}|\d{2})?((\.|\-|\_))[a-zA-Z0-9].*)$"
 
-        # Use grep with PCRE regular expression support
-        checked=$(echo $string | grep -P "$pattern" || true)
+        # Use grep with PCRE regular expression support. Feed the value
+        # via printf rather than echo so a string beginning with a dash
+        # (e.g. -n/-e) is not misread as an echo option.
+        checked=$(printf '%s' "$string" | grep -P "$pattern" || true)
         if [ "$checked" = "$string" ]; then
           echo "Tag/version string is valid CalVer ✅"
-          echo "valid=true" >> $GITHUB_ENV
-          echo "valid=true" >> $GITHUB_OUTPUT
+          echo "valid=true" >> "$GITHUB_OUTPUT"
         else
           echo "Tag/version string is NOT valid CalVer ❌"
-          echo "valid=false" >> $GITHUB_ENV
-          echo "valid=false" >> $GITHUB_OUTPUT
+          echo "valid=false" >> "$GITHUB_OUTPUT"
           if [ "f$exit_on_fail" = "ftrue" ]; then
             exit 1
           fi
