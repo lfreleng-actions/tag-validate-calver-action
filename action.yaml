@@ -19,7 +19,7 @@ inputs:
 outputs:
   # Mandatory
   valid:
-    description: 'Set true if tag passes semantic versioning check'
+    description: 'Set true if tag passes calendar versioning check'
     value: ${{ steps.validate.outputs.valid }}
   dev_version:
     description: 'Set true if tag is a development version'
@@ -54,9 +54,11 @@ runs:
         echo "Development/pre-release detected: $dev_version"
         echo "dev_version=$dev_version" >> "$GITHUB_OUTPUT"
 
-        # See: https://regex101.com/r/BQfFYn/1
-        # Best effort at a reasonable RegEx that accepts a number of variations
-        pattern="^(\d{2}|\d{4}).(\d{1}|\d{2})(\.(\d{1}|\d{2})?((\.|\-|\_))[a-zA-Z0-9].*)$"
+        # Accepts a 2 or 4 digit year, a 1 or 2 digit second segment, an
+        # optional numeric micro segment, then optional alphanumeric
+        # modifiers each preceded by ".", "-" or "_"
+        # (e.g. 24.04, 25.02.3, 2025.02.3-rc.1, 2025.02.3_post1)
+        pattern="^(\d{2}|\d{4})\.(\d{1,2})(\.\d+)?([.\-_][0-9A-Za-z]+)*$"
 
         # Use grep with PCRE regular expression support. Feed the value
         # via printf rather than echo so a string beginning with a dash

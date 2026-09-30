@@ -35,8 +35,17 @@ jobs:
     steps:
       - name: "Running local action: ${{ github.repository }} 25.02.3"
         uses: $/
+        id: short-year
         with:
           string: "25.02.3"
+
+      - name: "Error if short-year tag not valid"
+        if: steps.short-year.outputs.valid != 'true'
+        shell: bash
+        run: |
+          # Error if short-year tag not valid
+          echo "Error: short-year tag was not flagged valid ❌"
+          exit 1
 
       - name: "Running local action: ${{ github.repository }} 2025.02.3"
         uses: $/
@@ -62,6 +71,21 @@ jobs:
         uses: $/
         with:
           string: "v1.not-valid.3.garbage"
+
+      # yamllint disable-line rule:line-length
+      - name: "Running local action: ${{ github.repository }} 2025x02.3.0 [NOT CalVer]"
+        uses: $/
+        id: bad-separator
+        with:
+          string: "2025x02.3.0"
+
+      - name: "Error if bad year separator not rejected"
+        if: steps.bad-separator.outputs.valid != 'false'
+        shell: bash
+        run: |
+          # Error if bad year separator not rejected
+          echo "Error: non-CalVer string was flagged valid ❌"
+          exit 1
 
       # yamllint disable-line rule:line-length
       - name: "Running local action: ${{ github.repository }} [Override Failure]"
