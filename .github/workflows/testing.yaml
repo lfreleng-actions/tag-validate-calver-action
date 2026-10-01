@@ -12,11 +12,6 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-    paths:
-      - '**'
-      - '!.github/**'
-      - '!.*'
-      - '!tox.ini'
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
@@ -47,16 +42,61 @@ jobs:
           echo "Error: short-year tag was not flagged valid ❌"
           exit 1
 
+      - name: "Running local action: ${{ github.repository }} 24.04"
+        uses: $/
+        id: short-year-two-segment
+        with:
+          string: "24.04"
+
+      - name: "Error if two-segment short-year tag not valid"
+        if: steps.short-year-two-segment.outputs.valid != 'true'
+        shell: bash
+        run: |
+          # Error if two-segment short-year tag not valid
+          echo "Error: two-segment short-year tag was not flagged valid ❌"
+          exit 1
+
       - name: "Running local action: ${{ github.repository }} 2025.02.3"
         uses: $/
+        id: long-year
         with:
           string: "2025.02.3"
+
+      - name: "Error if long-year tag not valid"
+        if: steps.long-year.outputs.valid != 'true'
+        shell: bash
+        run: |
+          # Error if long-year tag not valid
+          echo "Error: long-year tag was not flagged valid ❌"
+          exit 1
+
+      - name: "Running local action: ${{ github.repository }} 2025.02"
+        uses: $/
+        id: long-year-two-segment
+        with:
+          string: "2025.02"
+
+      - name: "Error if two-segment long-year tag not valid"
+        if: steps.long-year-two-segment.outputs.valid != 'true'
+        shell: bash
+        run: |
+          # Error if two-segment long-year tag not valid
+          echo "Error: two-segment long-year tag was not flagged valid ❌"
+          exit 1
 
       - name: "Running local action: ${{ github.repository }} v2025.02.3-dev1"
         uses: $/
         id: dev-tag
         with:
           string: "v2025.02.3-dev1"
+
+      - name: "Error if development tag not valid"
+        if: steps.dev-tag.outputs.valid != 'true'
+        shell: bash
+        run: |
+          # Error if development tag not valid
+          echo "Error: development tag was not flagged valid ❌"
+          exit 1
 
       - name: "Error if development tag not flagged"
         if: steps.dev-tag.outputs.dev_version != 'true'
@@ -69,8 +109,17 @@ jobs:
       # yamllint disable-line rule:line-length
       - name: "Running local action: ${{ github.repository }} v1.not-valid.3.garbage [NOT CalVer]"
         uses: $/
+        id: not-calver
         with:
           string: "v1.not-valid.3.garbage"
+
+      - name: "Error if non-CalVer string not rejected"
+        if: steps.not-calver.outputs.valid != 'false'
+        shell: bash
+        run: |
+          # Error if non-CalVer string not rejected
+          echo "Error: non-CalVer string was flagged valid ❌"
+          exit 1
 
       # yamllint disable-line rule:line-length
       - name: "Running local action: ${{ github.repository }} 2025x02.3.0 [NOT CalVer]"
@@ -84,7 +133,22 @@ jobs:
         shell: bash
         run: |
           # Error if bad year separator not rejected
-          echo "Error: non-CalVer string was flagged valid ❌"
+          echo "Error: bad year separator was flagged valid ❌"
+          exit 1
+
+      # yamllint disable-line rule:line-length
+      - name: "Running local action: ${{ github.repository }} 99a1.1.x [NOT CalVer]"
+        uses: $/
+        id: bad-separator-short-year
+        with:
+          string: "99a1.1.x"
+
+      - name: "Error if bad short-year separator not rejected"
+        if: steps.bad-separator-short-year.outputs.valid != 'false'
+        shell: bash
+        run: |
+          # Error if bad short-year separator not rejected
+          echo "Error: bad short-year separator was flagged valid ❌"
           exit 1
 
       # yamllint disable-line rule:line-length
